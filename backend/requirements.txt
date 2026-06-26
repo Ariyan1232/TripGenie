@@ -1,0 +1,5 @@
+# The converge package itself has zero external dependencies so far --
+# Traveler/Flight/AIRPORTS use only the Python standard library
+# (dataclasses, datetime). This file covers dev/test tooling only.
+
+pytest>=8.0
