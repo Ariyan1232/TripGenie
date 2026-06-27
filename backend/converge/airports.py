@@ -9,7 +9,7 @@ with real lat/lon for distance calculations once we need that.
 """
 
 AIRPORTS = {
-    "JFK": {"city": "New York", "timezone": "America/New_York"},
-    "LHR": {"city": "London", "timezone": "Europe/London"},
-    "NRT": {"city": "Tokyo", "timezone": "Asia/Tokyo"},
+    "JFK": {"city": "New York", "timezone": "America/New_York", "lat": 40.6413, "lon": -73.7781},
+    "LHR": {"city": "London", "timezone": "Europe/London", "lat": 51.4700, "lon": -0.4543},
+    "NRT": {"city": "Tokyo", "timezone": "Asia/Tokyo", "lat": 35.7720, "lon": 140.3929},
 }
