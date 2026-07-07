@@ -31,3 +31,11 @@ class Flight:
     departure: datetime  # timezone-aware, in the ORIGIN's local time
     arrival: datetime    # timezone-aware, in the DESTINATION's local time
     price_usd: float
+
+
+@dataclass
+class SolverResult:
+    label: str           # "Cheapest", "Best synced", "Most balanced"
+    flights: list[Flight]  # one Flight per traveler
+    spread_hours: float  # arrival spread across the group
+    total_cost: float    # sum of all flight prices

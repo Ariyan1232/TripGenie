@@ -1,17 +1,21 @@
 """
-Step 4: the solver.
+The solver.
 
-Given N travelers, a shared destination, a shared date, and a few flight
-options per traveler, find the combination of one flight per traveler that
-minimizes the arrival spread -- the gap between the earliest and latest
-landing in the group.
+Given flight options per traveler and a shared destination, find the
+combination (one flight per traveler) that best serves the group across
+three different definitions of "best":
 
-This is the core of what makes Converge different from just booking
-flights independently: it optimizes for the group, not for each person
-individually.
+  Cheapest      -- minimize total group cost
+  Best synced   -- minimize arrival spread (how far apart everyone lands)
+  Most balanced -- best tradeoff between cost and sync
+
+Returns all three as labeled SolverResult objects so the group can
+compare and choose, rather than the app picking one answer for them.
 """
 
-from .models import Flight
+from itertools import product
+
+from .models import Flight, SolverResult
 
 
 def arrival_spread_hours(flights: list[Flight]) -> float:
@@ -19,10 +23,7 @@ def arrival_spread_hours(flights: list[Flight]) -> float:
     How spread out are the arrivals in this group?
 
     Returns the gap in hours between the earliest and latest arrival.
-    Zero means everyone lands at the same moment. Works correctly across
-    timezones for the same reason arrival_gap_hours does -- Flight.arrival
-    is timezone-aware, so comparing arrivals across different origin
-    timezones gives the true elapsed gap.
+    Zero means everyone lands at the same moment.
     """
     arrivals = [f.arrival for f in flights]
     earliest = min(arrivals)
@@ -30,28 +31,72 @@ def arrival_spread_hours(flights: list[Flight]) -> float:
     return (latest - earliest).total_seconds() / 3600
 
 
-def best_synced_combination(
+def find_options(
     options_per_traveler: list[list[Flight]],
-) -> list[Flight]:
+) -> list[SolverResult]:
     """
-    Given a list of flight options per traveler, return the combination
-    (one flight per traveler) that produces the smallest arrival spread.
+    Given flight options per traveler, return three labeled combinations:
+    Cheapest, Best synced, and Most balanced.
 
-    options_per_traveler[0] = Alice's flight options
-    options_per_traveler[1] = Ben's flight options
+    options_per_traveler[0] = first traveler's flight options
+    options_per_traveler[1] = second traveler's flight options
     ... and so on.
-
-    Returns one flight per traveler -- the best combination found.
     """
-    from itertools import product
+    all_combos = [list(combo) for combo in product(*options_per_traveler)]
 
-    best_combo = None
-    best_spread = float("inf")
+    if not all_combos:
+        return []
 
-    for combo in product(*options_per_traveler):
-        spread = arrival_spread_hours(list(combo))
-        if spread < best_spread:
-            best_spread = spread
-            best_combo = list(combo)
+    scored = [
+        {
+            "flights": combo,
+            "spread": arrival_spread_hours(combo),
+            "cost": sum(f.price_usd for f in combo),
+        }
+        for combo in all_combos
+    ]
 
-    return best_combo
+    # --- Cheapest ---
+    cheapest = min(scored, key=lambda s: s["cost"])
+
+    # --- Best synced ---
+    synced = min(scored, key=lambda s: s["spread"])
+
+    # --- Most balanced ---
+    # Normalize both dimensions to 0-1 so neither cost nor sync
+    # dominates the balance score. 0 = best seen, 1 = worst seen.
+    min_spread = min(s["spread"] for s in scored)
+    max_spread = max(s["spread"] for s in scored)
+    min_cost   = min(s["cost"]   for s in scored)
+    max_cost   = max(s["cost"]   for s in scored)
+
+    spread_range = max_spread - min_spread or 1
+    cost_range   = max_cost   - min_cost   or 1
+
+    def balance_score(s):
+        norm_spread = (s["spread"] - min_spread) / spread_range
+        norm_cost   = (s["cost"]   - min_cost)   / cost_range
+        return norm_spread + norm_cost
+
+    balanced = min(scored, key=balance_score)
+
+    return [
+        SolverResult(
+            label="Cheapest",
+            flights=cheapest["flights"],
+            spread_hours=cheapest["spread"],
+            total_cost=cheapest["cost"],
+        ),
+        SolverResult(
+            label="Best synced",
+            flights=synced["flights"],
+            spread_hours=synced["spread"],
+            total_cost=synced["cost"],
+        ),
+        SolverResult(
+            label="Most balanced",
+            flights=balanced["flights"],
+            spread_hours=balanced["spread"],
+            total_cost=balanced["cost"],
+        ),
+    ]
