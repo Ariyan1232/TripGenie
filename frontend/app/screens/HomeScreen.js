@@ -34,7 +34,7 @@ export default function HomeScreen({ navigation }) {
           <Button
             title="Join a trip"
             variant="secondary"
-            onPress={() => navigation.navigate('Join')}
+            onPress={() => navigation.navigate('Vote')}
           />
 
           <Text style={styles.hint}>

@@ -34,7 +34,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Vote"
           component={VoteScreen}
-          options={{ title: 'Your Preferences' }}
+          options={{ title: 'Join a Trip' }}
         />
         <Stack.Screen
           name="Members"
