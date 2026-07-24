@@ -1,9 +1,9 @@
 import { View, StyleSheet } from 'react-native';
 import { Colors } from '../constants/colors';
 
-export default function Card({ children, style }) {
+export default function Card({ children, style, raised = false }) {
   return (
-    <View style={[styles.card, style]}>
+    <View style={[styles.card, raised && styles.raised, style]}>
       {children}
     </View>
   );
@@ -12,10 +12,13 @@ export default function Card({ children, style }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: Colors.border,
     marginBottom: 12,
+  },
+  raised: {
+    backgroundColor: Colors.surfaceRaised,
   },
 });

@@ -1,12 +1,12 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Colors } from '../constants/colors';
 
 import HomeScreen from '../screens/HomeScreen';
 import TripSetupScreen from '../screens/TripSetupScreen';
 import VoteScreen from '../screens/VoteScreen';
 import MembersScreen from '../screens/MembersScreen';
 import ResultsScreen from '../screens/ResultsScreen';
-import { Colors } from '../constants/colors';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,9 +16,13 @@ export default function AppNavigator() {
       <Stack.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: Colors.background },
-          headerTintColor: Colors.textDark,
-          headerTitleStyle: { fontWeight: '600' },
+          headerTintColor: Colors.accent,
+          headerTitleStyle: {
+            fontWeight: '600',
+            color: Colors.textPrimary,
+          },
           contentStyle: { backgroundColor: Colors.background },
+          headerShadowVisible: false,
         }}
       >
         <Stack.Screen
